@@ -114,10 +114,26 @@ CKEDITOR.scriptLoader = ( function() {
 
 					// Create the <script> element.
 					var script = new CKEDITOR.dom.element( 'script' );
-					script.setAttributes( {
-						type: 'text/javascript',
-						src: url
-					} );
+					if (self.trustedTypes && self.trustedTypes.createPolicy) {
+						// Legacy converted for now because of the possibility of using alternate CDNs for serving scripts.
+						var policy = self.trustedTypes.createPolicy(
+						  'scriptloader#loadScript',
+						  {
+							createScriptURL: function (url) {
+								return url;
+							},
+						  }
+						);
+						script.setAttributes( {
+							type: 'text/javascript',
+							src: policy.createScriptURL(url)
+						} );
+					  } else {
+						script.setAttributes( {
+							type: 'text/javascript',
+							src: url
+						} );
+					  }
 
 					if ( callback ) {
 						// The onload or onerror event does not fire in IE8 and IE9 Quirks Mode (https://dev.ckeditor.com/ticket/14849).
