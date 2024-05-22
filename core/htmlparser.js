@@ -113,18 +113,14 @@ CKEDITOR.htmlParser = function() {
 		 */
 		parse: function( html ) {
 			var parts, tagName,
-				nextIndex = 0,
-				cdata; // The collected data inside a CDATA section.
+				nextIndex = 0;
 
 			while ( ( parts = this._.htmlPartsRegex.exec( html ) ) ) {
 				var tagIndex = parts.index;
 				if ( tagIndex > nextIndex ) {
 					var text = html.substring( nextIndex, tagIndex );
 
-					if ( cdata )
-						cdata.push( text );
-					else
-						this.onText( text );
+					this.onText( text );
 				}
 
 				nextIndex = this._.htmlPartsRegex.lastIndex;
@@ -139,22 +135,7 @@ CKEDITOR.htmlParser = function() {
 				// Closing tag
 				if ( ( tagName = parts[ 1 ] ) ) {
 					tagName = tagName.toLowerCase();
-
-					if ( cdata && CKEDITOR.dtd.$cdata[ tagName ] ) {
-						// Send the CDATA data.
-						this.onCDATA( cdata.join( '' ) );
-						cdata = null;
-					}
-
-					if ( !cdata ) {
-						this.onTagClose( tagName );
-						continue;
-					}
-				}
-
-				// If CDATA is enabled, just save the raw match.
-				if ( cdata ) {
-					cdata.push( parts[ 0 ] );
+					this.onTagClose( tagName );
 					continue;
 				}
 
@@ -186,9 +167,21 @@ CKEDITOR.htmlParser = function() {
 
 					this.onTagOpen( tagName, attribs, selfClosing );
 
-					// Open CDATA mode when finding the appropriate tags.
-					if ( !cdata && CKEDITOR.dtd.$cdata[ tagName ] )
-						cdata = [];
+					// Extract raw text content when finding the appropriate tags.
+					if ( CKEDITOR.dtd.$cdata[ tagName ] ) {
+						// Since $cdata has been matched, assume the tagName is safe to use in a RegExp.
+						var closeRegex = new RegExp( '<\/' + tagName + '\\s*>', 'i' ),
+						    remainingText = html.substring( nextIndex ),
+						    rawTextLength = remainingText.search( closeRegex );
+
+						if (rawTextLength !== -1) {
+							this.onCDATA(remainingText.substring(0, rawTextLength));
+							this._.htmlPartsRegex.lastIndex = (nextIndex += rawTextLength);
+						} else {
+							this.onCDATA(remainingText);
+							this._.htmlPartsRegex.lastIndex = nextIndex = html.length;
+						}
+					}
 
 					continue;
 				}
