@@ -12,7 +12,11 @@
 		isDrupal = 'Drupal' in window,
 		consoleErrorDisplayed = false,
 		versionInfo = {
-			current: parseVersion( CKEDITOR.version )
+			current: parseVersion( CKEDITOR.version ),
+			latest: parseVersion( CKEDITOR.version ),
+			secure: parseVersion( CKEDITOR.version ),
+			isLatest: true,
+			isSecure: true
 		};
 
 	if ( isDrupal || !versionInfo.current ) {

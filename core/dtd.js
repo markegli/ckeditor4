@@ -274,7 +274,7 @@ CKEDITOR.dtd = ( function() {
 		},
 
 		/**
-		 * List of elements that contain character data.
+		 * List of elements that contain character data; what the HTML Standard calls "raw text elements".
 		 */
 		$cdata: { script: 1, style: 1 },
 
